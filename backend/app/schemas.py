@@ -1,6 +1,7 @@
 from pydantic import BaseModel, IPvAnyAddress
-from typing import Optional
-from .models import ApplianceType, ApplianceFamily
+from typing import Optional, List
+from .models import ApplianceType, ApplianceFamily, TestStatus
+from datetime import datetime
 
 # Shared properties
 class ApplianceBase(BaseModel):
@@ -18,17 +19,55 @@ class ApplianceCreate(ApplianceBase):
 class ApplianceUpdate(ApplianceBase):
     password: Optional[str] = None
 
+class TestBase(BaseModel):
+    intensity: Optional[int] = 10
+
+class TestCreate(TestBase):
+    appliance_ids: List[int]
+
+class TestUpdate(BaseModel):
+    status: Optional[TestStatus] = None
+    results: Optional[dict] = None
+    end_time: Optional[datetime] = None
+
 # Properties shared by models stored in DB
 class ApplianceInDBBase(ApplianceBase):
     id: int
-
     class Config:
         orm_mode = True
 
-# Properties to return to client
-class Appliance(ApplianceInDBBase):
+# To break the circular dependency, we create schemas specifically for nested responses.
+
+class ApplianceInTestDetail(ApplianceInDBBase):
+    # This version of Appliance does NOT include the 'tests' field
+    # to avoid the recursion loop when it's nested inside a Test response.
     pass
+
+class TestInApplianceDetail(TestBase):
+    # This version of Test does NOT include the 'appliances' field.
+    id: int
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    status: TestStatus
+    results: Optional[dict] = None
+    class Config:
+        orm_mode = True
+
+# --- Top-level schemas to be returned to client ---
+
+class Appliance(ApplianceInDBBase):
+    tests: List[TestInApplianceDetail] = []
+
+class Test(TestBase):
+    id: int
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    status: TestStatus
+    results: Optional[dict] = None
+    appliances: List[ApplianceInTestDetail] = []
+    class Config:
+        orm_mode = True
 
 # Properties stored in DB
 class ApplianceInDB(ApplianceInDBBase):
-    password: str 
+    password: str

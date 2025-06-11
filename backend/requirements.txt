@@ -4,10 +4,10 @@ sqlalchemy
 psycopg2-binary
 celery
 redis
+requests
 pydantic[email]
 python-dotenv
 passlib[bcrypt]
 python-jose[cryptography]
-requests
 paramiko
-pysnmp 
+pysnmp

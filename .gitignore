@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+/backend/venv/
+/backend/.env
+/frontend/.env
+/frontend/.env.*
+
+# Celery files
+celerybeat-schedule
+celerybeat.pid
+
+# Frontend dependencies & build files
+/frontend/node_modules/
+/frontend/dist/
+/frontend/coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+*.log.*
+
+# IDE and OS specific files
+.vscode/
+.idea/
+.DS_Store
+*.swp 
