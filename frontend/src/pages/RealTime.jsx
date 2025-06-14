@@ -1,15 +1,55 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getTests } from '../api';
 import { Link } from 'react-router-dom';
 
+const LiveTimer = ({ startTime }) => {
+  const [elapsed, setElapsed] = React.useState(() => Date.now() - new Date(startTime).getTime());
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(Date.now() - new Date(startTime).getTime());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  const minutes = Math.floor(elapsed / 1000 / 60);
+  console.log(minutes)
+  const seconds = Math.floor((elapsed / 1000) % 60);
+
+  return (
+    <div className="flex flex-col items-center my-4">
+      <div className="flex justify-center items-center gap-1">
+        <p className='font-mono text-4xl'>{`${minutes}`}</p>
+
+        <span className="text-2xl">m</span>
+        <span className="countdown font-mono text-4xl">
+          <span style={{ "--value": String(seconds) }}></span>
+        </span>
+        <span className="text-2xl">s</span>
+      </div>
+      <p className="text-sm mt-2 text-gray-500">
+        {`Elapsed ms: ${elapsed} (${minutes}m ${seconds}s)`}
+      </p>
+    </div>
+  );
+};
+
+
+
 const RealTimeView = () => {
     const { data: testsData, isLoading } = useQuery({
-        queryKey: ['tests'],
-        queryFn: getTests,
-        refetchInterval: 2000, // Refresh every 2 seconds for live feeling
-        select: (data) => data.data.filter(t => t.status === 'running' || t.status === 'pending'),
-    });
+    queryKey: ['tests'],
+    queryFn: getTests,
+    refetchInterval: 2000,
+    select: (data) => {
+        const filtered = data.data.filter(t => t.status === 'running' || t.status === 'pending');
+        console.log('Tests filtrés (running/pending) :', filtered);
+        return filtered;
+    },
+});
+
 
     if (isLoading) {
         return <div className="text-center p-8"><span className="loading loading-lg"></span></div>;
@@ -24,14 +64,14 @@ const RealTimeView = () => {
             </div>
         );
     }
-    
+
     const getStatusBadge = (status) => {
         const colors = {
-          pending: 'badge-info',
-          running: 'badge-primary',
+            pending: 'badge-info',
+            running: 'badge-primary',
         };
         return <span className={`badge ${colors[status] || 'badge-ghost'}`}>{status}</span>;
-      };
+    };
 
     return (
         <div className="w-full p-4 space-y-8">
@@ -40,20 +80,11 @@ const RealTimeView = () => {
                 {testsData.map(test => (
                     <div key={test.id} className="card bg-base-200 shadow-xl">
                         <div className="card-body">
-                           <div className="flex justify-between items-center mb-2">
-                             <h2 className="card-title">Test #{test.id}</h2>
-                             {getStatusBadge(test.status)}
-                           </div>
-                           <div className="flex justify-center my-4">
-                               <span className="countdown font-mono text-4xl">
-                                   <span style={{"--value": Math.floor((Date.now() - new Date(test.start_time).getTime()) / 1000 / 60)}}></span>
-                                </span>
-                               m
-                                <span className="countdown font-mono text-4xl">
-                                  <span style={{"--value": Math.floor((Date.now() - new Date(test.start_time).getTime()) / 1000 % 60)}}></span>
-                                </span>
-                               s
-                           </div>
+                            <div className="flex justify-between items-center mb-2">
+                                <h2 className="card-title">Test #{test.id}</h2>
+                                {getStatusBadge(test.status)}
+                            </div>
+                            <LiveTimer startTime={test.start_time} />
                             <p><span className="font-bold">Intensity:</span> {test.intensity} req/s</p>
                             <p><span className="font-bold">Appliances:</span> {test.appliances.map(a => a.name).join(', ')}</p>
                             <div className="card-actions justify-end mt-4">
@@ -69,4 +100,4 @@ const RealTimeView = () => {
     );
 };
 
-export default RealTimeView; 
+export default RealTimeView;
