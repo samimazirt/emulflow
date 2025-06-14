@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getTests } from '../api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -11,32 +11,45 @@ const Dashboard = () => {
     });
 
     const chartData = useMemo(() => {
-        if (!testsData?.data) return [];
-        return testsData.data
-            .filter(t => t.status === 'completed' && t.results)
-            .slice(0, 10) // Get latest 10
-            .map(test => ({
-                name: `Test #${test.id}`,
-                success: test.results.success || 0,
-                failed: test.results.failed || 0,
-            })).reverse(); // show oldest first
-    }, [testsData]);
+    if (!testsData?.data) return [];
+
+    return testsData.data
+        .filter(t => t.status === 'completed' && t.results)
+        .slice(0, 10)
+        .map(test => ({
+            name: `Test #${test.id}`,
+            success: Array.isArray(test.results.success) ? test.results.success.length : 0,
+            failed: Array.isArray(test.results.failed) ? test.results.failed.length : 0,
+        }))
+        .reverse();
+}, [testsData]);
+
 
     const stats = useMemo(() => {
-        if (!testsData?.data) return { totalTests: 0, totalSuccess: 0, totalFailed: 0, successRate: 0 };
-        
-        const completedTests = testsData.data.filter(t => t.status === 'completed' && t.results);
-        const totalSuccess = completedTests.reduce((acc, t) => acc + (t.results.success || 0), 0);
-        const totalFailed = completedTests.reduce((acc, t) => acc + (t.results.failed || 0), 0);
-        const totalRequests = totalSuccess + totalFailed;
+    if (!testsData?.data) {
+        return { totalTests: 0, totalSuccess: 0, totalFailed: 0, successRate: 0 };
+    }
 
-        return {
-            totalTests: completedTests.length,
-            totalSuccess,
-            totalFailed,
-            successRate: totalRequests > 0 ? ((totalSuccess / totalRequests) * 100).toFixed(1) : 0,
-        };
-    }, [testsData]);
+    const completedTests = testsData.data.filter(t => t.status === 'completed' && t.results);
+
+    const totalSuccess = completedTests.reduce((acc, t) => {
+        return acc + (Array.isArray(t.results.success) ? t.results.success.length : 0);
+    }, 0);
+
+    const totalFailed = completedTests.reduce((acc, t) => {
+        return acc + (Array.isArray(t.results.failed) ? t.results.failed.length : 0);
+    }, 0);
+
+    const totalRequests = totalSuccess + totalFailed;
+
+    return {
+        totalTests: completedTests.length,
+        totalSuccess,
+        totalFailed,
+        successRate: totalRequests > 0 ? ((totalSuccess / totalRequests) * 100).toFixed(1) : 0,
+    };
+}, [testsData]);
+
 
     if (isLoading) {
         return <div className="text-center p-8"><span className="loading loading-lg"></span></div>;
@@ -56,7 +69,6 @@ const Dashboard = () => {
         <div className="w-full p-4 space-y-8">
             <h1 className="text-3xl font-bold text-center">Dashboard</h1>
 
-            {/* Stats */}
             <div className="stats shadow stats-vertical lg:stats-horizontal w-full">
                 <div className="stat">
                     <div className="stat-title">Completed Tests</div>
@@ -76,7 +88,6 @@ const Dashboard = () => {
                 </div>
             </div>
             
-            {/* Chart */}
             <div className="card bg-base-200 shadow-xl">
                 <div className="card-body">
                     <h2 className="card-title">Recent Test Results</h2>
@@ -88,8 +99,12 @@ const Dashboard = () => {
                                 <YAxis />
                                 <Tooltip wrapperClassName="card bg-base-100 p-2" />
                                 <Legend />
-                                <Bar dataKey="success" fill="#82ca9d" name="Success" />
-                                <Bar dataKey="failed" fill="#ff7575" name="Failed" />
+                                <Bar dataKey="success" fill="#82ca9d" name="Success">
+                                  <LabelList dataKey="success" position="top" />
+                                </Bar>
+                                <Bar dataKey="failed" fill="#ff7575" name="Failed">
+                                  <LabelList dataKey="failed" position="top" />
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -99,4 +114,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard; 
+export default Dashboard;

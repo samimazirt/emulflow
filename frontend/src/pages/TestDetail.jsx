@@ -28,7 +28,28 @@ const TestDetail = () => {
           stopped: 'badge-warning',
         };
         return <span className={`badge ${colors[status] || 'badge-ghost'}`}>{status}</span>;
-      };
+    };
+
+    // Fonction pour afficher un tableau simple en colonnes à partir d'un array de strings
+    const renderList = (title, items, colorClass) => {
+      if (!items || items.length === 0) return null;
+      return (
+        <div className="stat bg-base-300 rounded-box p-4 m-2">
+          <div className="stat-title font-bold">{title}</div>
+          <div className={`flex flex-wrap gap-2 mt-2`}>
+            {items.map((item, idx) => (
+              <span
+                key={idx}
+                className={`badge ${colorClass} lowercase`}
+                style={{ whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '100%' }}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    };
 
     return (
         <div className="container mx-auto p-4 w-full">
@@ -87,23 +108,18 @@ const TestDetail = () => {
                     <div className="divider"></div>
                     
                     <h2 className="text-xl font-bold">Results</h2>
-                    {test.status === 'completed' && test.results && (
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-                            <div className="stat bg-base-300 rounded-box">
-                                <div className="stat-title">Successful Requests</div>
-                                <div className="stat-value text-success">{test.results.success}</div>
-                            </div>
-                            <div className="stat bg-base-300 rounded-box">
-                                <div className="stat-title">Failed Requests</div>
-                                <div className="stat-value text-error">{test.results.failed}</div>
-                            </div>
-                        </div>
+
+                    {(test.status === 'completed' || test.status === 'failed') && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {renderList("Successful Requests", test.results.success, "badge-success")}
+                        {renderList("Failed Requests", test.results.failed, "badge-error")}
+                      </div>
                     )}
 
-                    {test.status === 'failed' && test.results?.error && (
-                        <div className="alert alert-error">
+                    {test.status === 'failed' && test.results?.failed && (
+                        <div className="alert alert-error mt-4">
                             <div>
-                                <span>Test failed: {test.results.error}</span>
+                                <span>Test failed: {test.results.failed}</span>
                             </div>
                         </div>
                     )}
@@ -111,10 +127,19 @@ const TestDetail = () => {
                     {test.results?.details && (
                         <>
                             <h3 className="text-lg font-bold mt-4">Execution Log</h3>
-                            <pre className="bg-base-300 p-4 rounded-box max-h-96 overflow-y-auto">
-                                <code>
-                                    {test.results.details.join('\\n')}
-                                </code>
+                            <pre
+                              className="bg-base-300 p-4 rounded-box max-h-96 overflow-y-auto whitespace-pre-wrap break-words"
+                              style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}
+                            >
+                              {test.results.details
+                                .map((detail, i) => {
+                                  try {
+                                    return JSON.stringify(JSON.parse(detail), null, 2);
+                                  } catch {
+                                    return detail;
+                                  }
+                                })
+                                .join('\n\n-----------------\n\n')}
                             </pre>
                         </>
                     )}
@@ -124,4 +149,4 @@ const TestDetail = () => {
     );
 };
 
-export default TestDetail; 
+export default TestDetail;
