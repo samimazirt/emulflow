@@ -116,10 +116,10 @@ const TestDetail = () => {
                       </div>
                     )}
 
-                    {test.status === 'failed' && test.results?.error && (
+                    {test.status === 'failed' && test.results?.failed && (
                         <div className="alert alert-error mt-4">
                             <div>
-                                <span>Test failed: {test.results.error}</span>
+                                <span>Test failed: {test.results.failed}</span>
                             </div>
                         </div>
                     )}
