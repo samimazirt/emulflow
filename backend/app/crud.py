@@ -65,3 +65,24 @@ def update_test(db: Session, test_id: int, test_data: schemas.TestUpdate):
         db.commit()
         db.refresh(db_test)
     return db_test 
+
+
+def get_forti_session(db: Session):
+    return db.query(models.FortiSession).order_by(models.FortiSession.created_at.desc()).first()
+
+def create_or_update_forti_session(db: Session, session_id: str):
+    session = get_forti_session(db)
+    if session:
+        session.session_id = session_id
+        session.created_at = datetime.utcnow()
+    else:
+        session = models.FortiSession(session_id=session_id)
+        db.add(session)
+    db.commit()
+    return session
+
+def delete_forti_session(db: Session):
+    session = get_forti_session(db)
+    if session:
+        db.delete(session)
+        db.commit()

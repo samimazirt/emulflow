@@ -56,3 +56,9 @@ class Test(Base):
     results = Column(JSON, nullable=True)
 
     appliances = relationship("Appliance", secondary=test_appliance_association, back_populates="tests") 
+
+class FortiSession(Base):
+    __tablename__ = "forti_sessions"
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String, unique=True, index=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
