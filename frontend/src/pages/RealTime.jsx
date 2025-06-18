@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getTests } from '../api';
 import { Link } from 'react-router-dom';
+import FortiStats from './FortiStats';
 
 const LiveTimer = ({ startTime }) => {
   const [elapsed, setElapsed] = React.useState(() => Date.now() - new Date(startTime).getTime());
@@ -85,6 +86,8 @@ const RealTimeView = () => {
                                 {getStatusBadge(test.status)}
                             </div>
                             <LiveTimer startTime={test.start_time} />
+                            <h1 className="text-3xl font-bold text-center">Live Tests</h1>
+                            <FortiStats />
                             <p><span className="font-bold">Intensity:</span> {test.intensity} req/s</p>
                             <p><span className="font-bold">Appliances:</span> {test.appliances.map(a => a.name).join(', ')}</p>
                             <div className="card-actions justify-end mt-4">

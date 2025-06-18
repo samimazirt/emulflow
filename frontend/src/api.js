@@ -18,3 +18,6 @@ export const getTest = (id) => apiClient.get(`/tests/${id}`);
 
 export const startFortiTest = (data) =>
   apiClient.post(`/fortimanager/forti_test`, data);
+
+export const getFortiManagerStats = () =>
+  apiClient.get('/stats/fortimanager/stats');

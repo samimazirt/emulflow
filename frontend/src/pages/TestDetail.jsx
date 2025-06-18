@@ -30,26 +30,26 @@ const TestDetail = () => {
         return <span className={`badge ${colors[status] || 'badge-ghost'}`}>{status}</span>;
     };
 
-    // Fonction pour afficher un tableau simple en colonnes à partir d'un array de strings
     const renderList = (title, items, colorClass) => {
-      if (!items || items.length === 0) return null;
-      return (
-        <div className="stat bg-base-300 rounded-box p-4 m-2">
-          <div className="stat-title font-bold">{title}</div>
-          <div className={`flex flex-wrap gap-2 mt-2`}>
-            {items.map((item, idx) => (
-              <span
-                key={idx}
-                className={`badge ${colorClass} lowercase`}
-                style={{ whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '100%' }}
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      );
-    };
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="stat bg-base-300 rounded-box p-4 m-2 max-h-96 overflow-y-auto">
+      <div className="stat-title font-bold">{title}</div>
+      <div className={`flex flex-wrap gap-2 mt-2`}>
+        {items.map((item, idx) => (
+          <span
+            key={idx}
+            className={`badge ${colorClass} lowercase`}
+            style={{ whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '100%' }}
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 
     return (
         <div className="container mx-auto p-4 w-full">
@@ -109,7 +109,7 @@ const TestDetail = () => {
                     
                     <h2 className="text-xl font-bold">Results</h2>
 
-                    {(test.status === 'completed' || test.status === 'failed') && (
+                    {(
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {renderList("Successful Requests", test.results.success, "badge-success")}
                         {renderList("Failed Requests", test.results.failed, "badge-error")}
