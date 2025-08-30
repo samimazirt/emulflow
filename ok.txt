@@ -1,0 +1,43 @@
+# Adresse cible
+$Url = "http://172.16.101.11/"
+
+# Nombre de requêtes
+$Count = 10
+
+# Hashtable pour compter les réponses par serveur
+$Stats = @{
+    "1" = 0
+    "2" = 0
+    "3" = 0
+    "Unknown" = 0
+}
+
+Write-Host "Envoi de $Count requêtes vers $Url ..."
+
+for ($i = 1; $i -le $Count; $i++) {
+    try {
+        # Récupération du contenu brut (évite l'erreur IE engine)
+        $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 5
+        $content = $response.Content
+
+        # Extraction du numéro de serveur via regex sur <h1>...</h1>
+        if ($content -match "<h1>(\d+)</h1>") {
+            $server = $Matches[1]
+            $Stats[$server]++
+            Write-Host "[$i] Serveur $server"
+        } else {
+            $Stats["Unknown"]++
+            Write-Host "[$i] Réponse sans balise <h1>"
+        }
+    }
+    catch {
+        $Stats["Unknown"]++
+        Write-Host "[$i] Erreur : $($_.Exception.Message)"
+    }
+}
+
+Write-Host ""
+Write-Host "===== Résultats ====="
+$Stats.GetEnumerator() | Sort-Object Name | ForEach-Object {
+    Write-Host "Serveur $($_.Key) : $($_.Value) réponses"
+}
